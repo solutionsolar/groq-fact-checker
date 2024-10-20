@@ -1,0 +1,188 @@
+<!-- templates/about.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About - Fact Checker</title>
+    <!-- Include Bootstrap CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/techramen-logo.png') }}">
+
+    <style>
+        /* Custom styles */
+        body {
+            padding-top: 70px;
+        }
+        .navbar-custom {
+            background-color: #343a40;
+        }
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link {
+            color: #ffffff;
+        }
+        /* Navbar Logo */
+        .navbar-brand img {
+            height: 50px; /* Adjust the height as needed */
+            width: auto;  /* Maintain aspect ratio */
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+        .navbar-brand span {
+            color: #ffffff;
+            margin-left: 10px; /* Space between logo and text */
+            font-size: 1.25rem; /* Adjust font size as needed */
+        }
+        .header-section {
+            background: url('https://uncody.com/uploads/66dc18c23383c5bead12d490/file-1725750129278.jpg') no-repeat center center;
+            background-size: cover;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        .header-section h1 {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        .content-section {
+            padding: 60px 0;
+        }
+        .footer {
+            background-color: #343a40;
+            color: #ffffff;
+            padding: 20px 0;
+        }
+        .footer a {
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='img/techramen-logo.png') }}" alt="TechRamen Fact Checker Logo">
+                <span>Fact Checker</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('news') }}">Prompts Database</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{{ url_for('about') }}">About <span class="sr-only">(current)</span></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section class="header-section">
+        <div class="container">
+            <h1>About Fact Checker</h1>
+            <p class="lead">Learn more about our methodology and how we verify information.</p>
+        </div>
+    </section>
+
+    <!-- Content Section -->
+    <section class="content-section">
+        <div class="container">
+            <h2 class="mb-4">Our Methodology</h2>
+            <p>Our Fact Checker application is designed to help you verify the credibility of information by analyzing factual claims using a comprehensive framework that includes the CRAAP test, veracity assessment, and intentionality categorization. Here's how it works:</p>
+            <ol>
+                <li><strong>Input:</strong> You can enter a URL or paste text containing factual claims that you want to verify.</li>
+                <li><strong>Claim Extraction:</strong> The application uses a language model to extract the main factual claims from the input text.</li>
+                <li><strong>Source Searching:</strong> For each claim, the application searches for relevant sources using the Bing Search API.</li>
+                <li><strong>CRAAP Evaluation:</strong> The application evaluates each source based on the CRAAP criteria, assigning scores and explanations for each criterion.</li>
+                <li><strong>Veracity Assessment:</strong> The application assesses the truthfulness of each claim by analyzing the evidence from the sources and generates a probability score along with a justification.</li>
+                <li><strong>Intentionality Categorization:</strong> Each source is categorized based on its intent, such as News, Opinion, Scientific, Marketing, etc.</li>
+                <li><strong>Final Truth Score:</strong> The CRAAP scores and veracity assessment are combined to produce a final truth score for each claim.</li>
+                <li><strong>Results Presentation:</strong> The results are displayed in an easy-to-understand format, showing the claims, verdicts, scores, sources, and explanations.</li>
+            </ol>
+
+            <!-- Detailed Explanations -->
+            <h2 class="mt-5 mb-4">Detailed Explanations</h2>
+
+            <h3>1. CRAAP Framework</h3>
+            <p>The CRAAP Test is a set of criteria used to evaluate the credibility and reliability of sources. It stands for:</p>
+            <ul>
+                <li><strong>Currency:</strong> Assessing the timeliness of the information.</li>
+                <li><strong>Relevance:</strong> Determining the importance of the information for your needs.</li>
+                <li><strong>Authority:</strong> Examining the source of the information.</li>
+                <li><strong>Accuracy:</strong> Evaluating the reliability and correctness of the content.</li>
+                <li><strong>Purpose:</strong> Understanding the reason the information exists.</li>
+            </ul>
+            <p>By analyzing each source using these criteria, we provide a nuanced understanding of its credibility.</p>
+            <p><a href="https://libraryguides.fullerton.edu/CRAAP" target="_blank">Learn more about the CRAAP Test</a></p>
+
+            <h3>2. Veracity Assessment</h3>
+            <p>The Veracity Assessment involves evaluating the truthfulness of each claim based on the evidence gathered from multiple sources. The application uses a language model to analyze the claim in the context of the evidence and assigns a probability score between 0 and 1, where:</p>
+            <ul>
+                <li><strong>1:</strong> The claim is definitely true.</li>
+                <li><strong>0:</strong> The claim is definitely false.</li>
+            </ul>
+            <p>A justification is also provided to explain the reasoning behind the assessment.</p>
+            <p><a href="https://en.wikipedia.org/wiki/Veracity" target="_blank">Learn more about Veracity</a></p>
+
+            <h3>3. Intentionality Categorization</h3>
+            <p>Each source is categorized based on its intent to help users understand the purpose behind the content. The categories include:</p>
+            <ul>
+                <li><strong>News/Journalism:</strong> Objective reporting of current events.</li>
+                <li><strong>Opinion/Editorial:</strong> Personal views or interpretations.</li>
+                <li><strong>Scientific/Scholarly:</strong> Academic research and studies.</li>
+                <li><strong>Marketing/Advertising:</strong> Promotion of products or services.</li>
+                <li><strong>Entertainment:</strong> Content created to amuse or entertain.</li>
+                <li><strong>Propaganda:</strong> Information aimed at influencing opinions.</li>
+                <li><strong>Satire/Parody:</strong> Humorous or exaggerated content to critique or mock.</li>
+                <li><strong>Advocacy/Non-Profit:</strong> Promotion of social causes or initiatives.</li>
+                <li><strong>Personal Blog/Opinion:</strong> Individual reflections or opinions.</li>
+                <li><strong>Government/Official:</strong> Information from official agencies.</li>
+                <li><strong>Educational:</strong> Instructional or teaching materials.</li>
+                <li><strong>Social Media Post:</strong> User-generated content on social platforms.</li>
+            </ul>
+            <p>Understanding the intent helps in evaluating potential biases and the context of the information.</p>
+            <p><a href="https://libguides.lorainccc.edu/evaluating_sources" target="_blank">Learn more about evaluating source intent</a></p>
+
+            <h3>4. Final Truth Score</h3>
+            <p>The Final Truth Score combines the normalized CRAAP scores and the Veracity Assessment to provide an overall evaluation of each claim's truthfulness. This score helps users quickly gauge the reliability of the claim.</p>
+            <p>The thresholds used are:</p>
+            <ul>
+                <li><strong>True:</strong> Final Truth Score ≥ 0.7</li>
+                <li><strong>False:</strong> Final Truth Score ≤ 0.3</li>
+                <li><strong>Uncertain:</strong> Final Truth Score between 0.3 and 0.7</li>
+            </ul>
+
+            <h2 class="mt-5 mb-4">Further Reading</h2>
+            <ul>
+                <li><a href="https://libguides.csuchico.edu/c.php?g=414315&p=2822522" target="_blank">Evaluating Information – Applying the CRAAP Test</a></li>
+                <li><a href="https://www.ala.org/acrl/standards/informationliteracycompetency" target="_blank">Information Literacy Competency Standards for Higher Education</a></li>
+                <li><a href="https://www.factcheck.org/" target="_blank">FactCheck.org</a></li>
+                <li><a href="https://www.snopes.com/" target="_blank">Snopes – Urban Legends Reference Pages</a></li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <p>&copy; {{ current_year }} Fact Checker. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Include Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

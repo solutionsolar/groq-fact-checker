@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verified News - Fact Checker</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/techramen-logo.png') }}">
+
+    <style>
+        .claim-card {
+            margin-bottom: 2rem;
+        }
+        body{
+            padding-top: 60px;
+        }
+        .source-summary {
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        .navbar-custom {
+            background-color: #343a40;
+        }
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link {
+            color: #ffffff;
+        }
+        /* Navbar Logo */
+        .navbar-brand img {
+            height: 50px; /* Adjust the height as needed */
+            width: auto;  /* Maintain aspect ratio */
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+        .navbar-brand span {
+            color: #ffffff;
+            margin-left: 10px; /* Space between logo and text */
+            font-size: 1.25rem; /* Adjust font size as needed */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top navbar-custom"">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='img/techramen-logo.png') }}" alt="TechRamen Fact Checker Logo">
+                <span>Fact Checker</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{{ url_for('news') }}">Claims Database<span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('about') }}">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Claims Database</h1>
+
+        {% for claim in claims %}
+        <div class="card claim-card">
+            <div class="card-body">
+                <h5 class="card-title">{{ claim.text }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">Checked on {{ claim.date_checked.strftime('%Y-%m-%d') }}</h6>
+
+                {% if claim.veracity_probability is not none %}
+                    {% set verdict = interpret_probability(claim.veracity_probability) %}
+                    <h6 class="card-subtitle mb-2">
+                        Veracity Assessment: 
+                        <span class="badge badge-{{ 'success' if verdict == 'True' else 'danger' if verdict == 'False' else 'warning' }}">
+                            {{ verdict }}
+                        </span>
+                    </h6>
+                    <p><strong>Probability:</strong> {{ claim.veracity_probability|round(2) }}</p>
+                    {% if claim.veracity_justification %}
+                        <p><strong>Justification:</strong> {{ claim.veracity_justification }}</p>
+                    {% endif %}
+                {% endif %}
+
+                {% if claim.final_truth_score is not none %}
+                    {% set verdict = interpret_final_score(claim.final_truth_score) %}
+                    <h6 class="card-subtitle mb-2">
+                        Verdict: 
+                        <span class="badge badge-{{ 'success' if verdict == 'True' else 'danger' if verdict == 'False' else 'warning' }}">
+                            {{ verdict }}
+                        </span>
+                    </h6>
+                    <p><strong>Final Truth Score:</strong> {{ claim.final_truth_score|round(2) }}</p>
+                {% endif %}
+
+                <h6 class="card-subtitle mb-2 text-muted">Overall CRAAP Scores:</h6>
+                <ul class="list-inline">
+                    {% for criterion, score in claim.overall_scores.items() %}
+                    <li class="list-inline-item">
+                        {{ criterion }}: <span class="badge badge-primary badge-pill">{{ score|round(2) }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="source-summary">
+                    <h6>Sources:</h6>
+                    <ul>
+                        {% for source in claim.sources %}
+                        <li>
+                            <a href="{{ source.url }}" target="_blank">{{ source.name }}</a>
+                            {% if source.intent_category %}
+                            - {{ source.intent_category }}
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <a href="{{ url_for('claim_detail', claim_id=claim.id) }}" class="btn btn-primary mt-3">View Details</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

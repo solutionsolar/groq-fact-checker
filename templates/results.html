@@ -1,0 +1,181 @@
+<!-- templates/results.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fact Check Results</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/techramen-logo.png') }}">
+
+    <style>
+        /* Custom styles */
+        body {
+            padding-top: 60px;
+        }
+        .claim-card {
+            margin-bottom: 30px;
+        }
+        .craap-score-list li {
+            margin-bottom: 5px;
+        }
+        .overall-score {
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .source-card {
+            margin-bottom: 20px;
+        }
+        .navbar-custom {
+            background-color: #343a40;
+        }
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link {
+            color: #ffffff;
+        }
+        /* Navbar Logo */
+        .navbar-brand img {
+            height: 50px; /* Adjust the height as needed */
+            width: auto;  /* Maintain aspect ratio */
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+        .navbar-brand span {
+            color: #ffffff;
+            margin-left: 10px; /* Space between logo and text */
+            font-size: 1.25rem; /* Adjust font size as needed */
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top navbar-custom">
+        <div class="container">
+            
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='img/techramen-logo.png') }}" alt="TechRamen Fact Checker Logo">
+                <span>Fact Checker</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('news') }}">Claims Database</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{{ url_for('about') }}">About <span class="sr-only">(current)</span></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="container">
+        <h1 class="my-4">Fact Check Results</h1>
+        {% for result in results %}
+            <div class="card claim-card">
+                <div class="card-body">
+                    <h4 class="card-title">Claim:</h4>
+                    <p class="card-text">{{ result.claim }}</p>
+                    {% if result.veracity_assessment %}
+                        {% set verdict = interpret_probability(result.veracity_assessment.probability) %}
+                        <h5 class="card-subtitle mb-2">
+                            Veracity Assessment: 
+                            {% if verdict == 'True' %}
+                                <span class="text-success"><i class="fas fa-check-circle"></i> True</span>
+                            {% elif verdict == 'False' %}
+                                <span class="text-danger"><i class="fas fa-times-circle"></i> False</span>
+                            {% else %}
+                                <span class="text-warning"><i class="fas fa-exclamation-circle"></i> Uncertain</span>
+                            {% endif %}
+                        </h5>
+                        <p><strong>Probability:</strong> {{ result.veracity_assessment.probability }}</p>
+                        <p><strong>Justification:</strong> {{ result.veracity_assessment.justification }}</p>
+                    {% else %}
+                        <p class="text-warning">No veracity assessment available for this claim.</p>
+                    {% endif %}
+                    {% if result.final_truth_score %}
+                        {% set verdict = interpret_final_score(result.final_truth_score) %}
+                        <h5 class="card-subtitle mb-2">
+                            Verdict: 
+                            {% if verdict == 'True' %}
+                                <span class="text-success"><i class="fas fa-check-circle"></i> True</span>
+                            {% elif verdict == 'False' %}
+                                <span class="text-danger"><i class="fas fa-times-circle"></i> False</span>
+                            {% else %}
+                                <span class="text-warning"><i class="fas fa-exclamation-circle"></i> Uncertain</span>
+                            {% endif %}
+                        </h5>
+                        <p><strong>Final Truth Score:</strong> {{ result.final_truth_score|round(2) }}</p>
+                    {% else %}
+                        <p class="text-warning">No final truth score available for this claim.</p>
+                    {% endif %}
+
+                    {% if result.overall_craap_scores %}
+                        <h5 class="card-subtitle mb-2 text-muted">Overall CRAAP Scores:</h5>
+                        <ul class="list-group list-group-flush overall-score">
+                            {% for criterion, score in result.overall_craap_scores.items() %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ criterion }}
+                                    <span class="badge badge-primary badge-pill">{{ score|round(2) }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-warning">No CRAAP scores available for this claim due to lack of sources.</p>
+                    {% endif %}
+
+                    <h5 class="mt-4">Sources:</h5>
+                    <!-- Inside the source display section -->
+                    {% for source_scores in result.sources %}
+                        <div class="card source-card">
+                            <div class="card-body">
+                                <!-- Corrected Access -->
+                                <h5 class="card-title">
+                                    <a href="{{ source_scores.url }}" target="_blank">{{ source_scores.name }}</a>
+                                </h5>
+                                <p class="card-text">{{ source_scores.snippet }}</p>
+
+                                <!-- Display Intentionality Categorization -->
+                                {% if source_scores.intent_category %}
+                                    <p><strong>Source Intent:</strong> {{ source_scores.intent_category }}</p>
+                                    <p><strong>Explanation:</strong> {{ source_scores.intent_explanation }}</p>
+                                {% else %}
+                                    <p><strong>Source Intent:</strong> Unknown</p>
+                                {% endif %}
+
+                                <!-- CRAAP Scores -->
+                                <h6>CRAAP Scores:</h6>
+                                <ul class="list-group craap-score-list">
+                                    {% for craap_score in source_scores.craap_scores %}
+                                        <li class="list-group-item">
+                                            <strong>{{ craap_score.criterion }} ({{ craap_score.score }}):</strong> {{ craap_score.explanation }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+        {% endfor %}
+        <a href="/" class="btn btn-secondary mb-4">Back to Home</a>
+    </div>
+
+    <!-- Include Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</body>
+</html>

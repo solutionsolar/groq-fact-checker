@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fact Checker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Include Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/techramen-logo.png') }}">
+    <style>
+        /* Custom styles */
+        body {
+            padding-top: 56px;
+        }
+        .form-container {
+            max-width: 600px;
+            margin: auto;
+        }
+        textarea {
+            resize: vertical;
+        }
+        /* Spinner overlay */
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none; /* Hidden by default */
+        }
+
+            .form-container {
+                max-width: 600px;
+                margin: auto;
+            }
+            textarea {
+                resize: vertical;
+            }
+            /* Spinner overlay */
+            .spinner-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(255, 255, 255, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                display: none; /* Hidden by default */
+            }
+            /* Navbar Logo */
+            .navbar-brand img {
+                height: 50px; /* Adjust the height as needed */
+                width: auto;  /* Maintain aspect ratio */
+            }
+            .navbar-brand {
+                display: flex;
+                align-items: center;
+            }
+            .navbar-brand span {
+                color: #ffffff;
+                margin-left: 10px; /* Space between logo and text */
+                font-size: 1.25rem; /* Adjust font size as needed */
+            }
+        .logo-img {
+            max-width: 200px;  /* Set the maximum width */
+            height: auto;      /* Maintain aspect ratio */
+        }
+        
+
+    </style>
+</head>
+<body>
+    <!-- Spinner Overlay -->
+    <div id="spinnerOverlay" class="spinner-overlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='img/techramen-logo.png') }}" alt="TechRamen Fact Checker Logo">
+                <span>Fact Checker</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('news') }}">Claims Database</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{{ url_for('about') }}">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="form-container">
+            <!-- Add Image Above the Heading -->
+            <img src="{{ url_for('static', filename='img/techramen-logo.png') }}" alt="TechRamen Logo" class="logo-img mx-auto d-block mb-3">
+
+            <h1 class="text-center my-4">Fact Checker</h1>
+            <p class="text-center my-4"><strong>Disclaimer:</strong> This is a prototype and can get truth assessments wildly wrong. Do not believe everything the fact checker tells you</p>
+            <form id="factCheckForm" method="POST">
+                <!-- Radio Buttons -->
+                <div class="mb-3">
+                    <div class="d-flex flex-wrap justify-content-center mb-3">
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="radio" name="input_type" id="inputTypeUrl" value="url">
+                            <label class="form-check-label" for="inputTypeUrl">URL</label> 
+                        </div> 
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="input_type" id="inputTypeText" value="text" checked>
+                            <label class="form-check-label" for="inputTypeText">Text</label> 
+                        </div>
+                    </div>
+                </div>
+                <!-- Textarea -->
+                <div class="mb-3">
+                    <label for="content">State your claim:</label>
+                    <textarea class="form-control w-100" name="content" id="content" rows="3" required></textarea>
+                </div>
+                <!-- Submit Button -->
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Check Facts</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script>
+        // Show spinner on form submit
+        document.getElementById('factCheckForm').addEventListener('submit', function(e) {
+            document.getElementById('spinnerOverlay').style.display = 'flex';
+        });
+
+        // Submit form on Enter keypress when focus is not on textarea
+        document.addEventListener('keydown', function(event) {
+            // Check if Enter key is pressed
+            if (event.key === 'Enter') {
+                    document.getElementById('factCheckForm').submit(); // Submit the form
+                    document.getElementById('spinnerOverlay').style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>

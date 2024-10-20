@@ -1,0 +1,10 @@
+flask
+groq
+requests
+beautifulsoup4
+newspaper3k==0.2.8
+nltk
+lxml==4.9.3
+azure-cognitiveservices-search-websearch 
+msrest
+SQLAlchemy

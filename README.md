@@ -1,6 +1,6 @@
 # 📰 Fact Checker Tool
 
-Welcome to the **Fact Checker Tool**, an innovative web-based platform designed to help users combat misinformation and verify facts across various media. This project is all about empowering critical thinking and ensuring that people have access to accurate information.
+Welcome to the **Fact Checker Tool**, a prototype of a web-based platform designed to help users combat misinformation and verify facts across various media. This project is all about empowering critical thinking and ensuring that people have access to accurate information.
 
 ## 🌟 Features
 
@@ -8,6 +8,7 @@ Welcome to the **Fact Checker Tool**, an innovative web-based platform designed 
 - **AI-Powered Insights**: Get insights on potentially misleading or questionable information.
 - **User-Friendly Interface**: Simple and intuitive design that lets anyone use it with ease.
 - **Real-Time Feedback**: Instant verification results to keep you informed on the go.
+- **Claims stored in a database**: Search for previously submitted claims.
 
 ## 🚀 How to Use
 

@@ -22,12 +22,13 @@ Welcome to the **Fact Checker Tool**, an innovative web-based platform designed 
 
 - **Frontend**: HTML5, CSS3, JavaScript
 - **Backend**: Python (Flask)
-- **AI Engine**: Leveraging NLP and Machine Learning models
+- **Internet Search:** Bing Search API
+- **AI Engine**: Llama3 70B Versatile hosted on Groq
 
 ## 📈 Use Cases
 
-- **Individuals**: Fact-check news stories, social media posts, or claims in everyday life.
-- **Researchers**: Analyze content and gather data on the spread of misinformation.
+- **Individuals**: Fact-check news stories, social media posts, or claims in everyday life. Quickly check generative AI for hallucinations.
+- **Researchers**: Find sources related to a claim.
 - **Educators**: Demonstrate how AI can be used to fight false information.
 
 ## 🌍 About the Project

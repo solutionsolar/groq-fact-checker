@@ -1,4 +1,4 @@
-entrypoint = "app.py"
+entrypoint = "run.sh"
 modules = ["python-3.11"]
 
 [nix]
@@ -11,7 +11,7 @@ language = "python3"
 requiredFiles = [".replit", "replit.nix"]
 
 [deployment]
-run = ["python3", "app.py"]
+run = ["bash", "run.sh"]
 deploymentTarget = "cloudrun"
 
 [[ports]]

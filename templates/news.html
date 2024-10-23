@@ -69,12 +69,23 @@
 
     <div class="container mt-4">
         <h1 class="mb-4">Claims Database</h1>
-
+        <!-- Search form -->
+        <form action="{{ url_for('news') }}" method="get" class="mb-4">
+            <div class="input-group">
+                <input type="text" class="form-control" name="search" placeholder="Search claims..." value="{{ search_query }}">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </div>
+        </form>
         {% for claim in claims %}
         <div class="card claim-card">
             <div class="card-body">
                 <h5 class="card-title">{{ claim.text }}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">Checked on {{ claim.date_checked.strftime('%Y-%m-%d') }}</h6>
+                {% if claim.original_query %}
+                    <p class="card-text"><small class="text-muted">Original Query: {{ claim.original_query }}</small></p>
+                {% endif %}
 
                 {% if claim.veracity_probability is not none %}
                     {% set verdict = interpret_probability(claim.veracity_probability) %}
@@ -129,7 +140,29 @@
         </div>
         {% endfor %}
     </div>
-
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% for page in paginated_claims.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                {% if page %}
+                    {% if page != paginated_claims.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('news', page=page, search=search_query) }}">{{ page }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page }} <span class="sr-only">(current)</span></span>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+    
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

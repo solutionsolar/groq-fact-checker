@@ -15,6 +15,8 @@ azure-cognitiveservices-search-websearch = "^2.0.1"
 msrest = "^0.7.1"
 flask-sqlalchemy = "^3.1.1"
 flask-migrate = "^4.0.7"
+psycopg2-binary = "^2.9.9"
+
 
 [tool.pyright]
 # https://github.com/microsoft/pyright/blob/main/docs/configuration.md

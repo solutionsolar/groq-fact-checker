@@ -15,8 +15,12 @@ from flask_migrate import Migrate
 
 app = Flask(__name__)
 
-# Configure the SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fact_checker.db'
+# Configure the PostgreSQL database
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+# Use only PostgreSQL, remove SQLite fallback
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -33,6 +37,7 @@ class Claim(db.Model):
     veracity_probability = db.Column(db.Float)
     veracity_justification = db.Column(db.Text)
     final_truth_score = db.Column(db.Float)
+    original_query = db.Column(db.Text)  # New column for storing the original query
     overall_scores = db.relationship('OverallCRAAPScore', backref='claim', lazy=True)
     sources = db.relationship('Source', backref='claim', lazy=True)
 
@@ -251,7 +256,7 @@ def compute_overall_craap_score(craap_scores_list):
 
   
 
-def extract_and_verify_claims(text):
+def extract_and_verify_claims(text, original_query):
     claims = extract_claims(text)
     results = []
     
@@ -266,7 +271,7 @@ def extract_and_verify_claims(text):
         # Check if the claim already exists in the database
         claim = Claim.query.filter_by(text=claim_text).first()
         if not claim:
-            claim = Claim(text=claim_text)
+            claim = Claim(text=claim_text, original_query=original_query)
             db.session.add(claim)
             db.session.commit()
 
@@ -523,16 +528,25 @@ def index():
         else:
             text = content
 
-        fact_check_results = extract_and_verify_claims(text)
+        fact_check_results = extract_and_verify_claims(text, original_query=content)
 
         return render_template('results.html', results=fact_check_results)
     return render_template('index.html')
 
-@app.route('/news')
+@app.route('/news', methods=['GET'])
 def news():
-    claims = Claim.query.order_by(Claim.date_checked.desc()).all()
+    search_query = request.args.get('search', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Number of claims per page
+    if search_query:
+        claims = Claim.query.filter(Claim.text.contains(search_query) | 
+                                    Claim.original_query.contains(search_query))
+    else:
+        claims = Claim.query
+    paginated_claims = claims.order_by(Claim.date_checked.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
     claims_data = []
-    for claim in claims:
+    for claim in paginated_claims.items:
         overall_scores = {score.criterion: score.score for score in claim.overall_scores}
         sources = [{
             'name': source.name,
@@ -547,9 +561,10 @@ def news():
             'veracity_probability': claim.veracity_probability,
             'veracity_justification': claim.veracity_justification,
             'final_truth_score': claim.final_truth_score,
-            'sources': sources
+            'sources': sources,
+            'original_query': claim.original_query
         })
-    return render_template('news.html', claims=claims_data)
+    return render_template('news.html', claims=claims_data, paginated_claims=paginated_claims, search_query=search_query)
 
 @app.route('/claim/<int:claim_id>')
 def claim_detail(claim_id):

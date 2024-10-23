@@ -8,3 +8,4 @@ lxml==4.9.3
 azure-cognitiveservices-search-websearch 
 msrest
 SQLAlchemy
+psycopg2

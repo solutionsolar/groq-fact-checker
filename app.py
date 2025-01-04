@@ -1,9 +1,10 @@
-           # app.py
+# app.py
 from flask import Flask, render_template, request
 import requests
 from bs4 import BeautifulSoup
 import nltk
 import os
+
 nltk.download('punkt')
 from newspaper import Article
 import groq
@@ -33,8 +34,11 @@ class Claim(db.Model):
     veracity_probability = db.Column(db.Float)
     veracity_justification = db.Column(db.Text)
     final_truth_score = db.Column(db.Float)
-    original_query = db.Column(db.Text)  # New column for storing the original query
-    overall_scores = db.relationship('OverallCRAAPScore', backref='claim', lazy=True)
+    original_query = db.Column(
+        db.Text)  # New column for storing the original query
+    overall_scores = db.relationship('OverallCRAAPScore',
+                                     backref='claim',
+                                     lazy=True)
     sources = db.relationship('Source', backref='claim', lazy=True)
 
 
@@ -52,10 +56,13 @@ class Source(db.Model):
 
 class CRAAPScore(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    source_id = db.Column(db.Integer, db.ForeignKey('source.id'), nullable=False)
+    source_id = db.Column(db.Integer,
+                          db.ForeignKey('source.id'),
+                          nullable=False)
     criterion = db.Column(db.String(64), nullable=False)
     score = db.Column(db.Float, nullable=False)
     explanation = db.Column(db.Text)
+
 
 class OverallCRAAPScore(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -63,14 +70,17 @@ class OverallCRAAPScore(db.Model):
     criterion = db.Column(db.String(64), nullable=False)
     score = db.Column(db.Float, nullable=False)
 
+
 def calculate_final_truth_score(overall_craap_scores, veracity_probability):
     # Normalize CRAAP score (assuming maximum CRAAP score per criterion is 10)
-    normalized_craap_score = sum(overall_craap_scores.values()) / (10 * len(overall_craap_scores))
+    normalized_craap_score = sum(
+        overall_craap_scores.values()) / (10 * len(overall_craap_scores))
     # Assign weights
     craap_weight = 0.5
     veracity_weight = 0.5
     # Calculate final score
-    final_score = (normalized_craap_score * craap_weight) + (veracity_probability * veracity_weight)
+    final_score = (normalized_craap_score *
+                   craap_weight) + (veracity_probability * veracity_weight)
     return final_score
 
 
@@ -88,6 +98,7 @@ def extract_text_from_url(url):
         print(f"Error extracting {url}: {e}")
         return ''
 
+
 def extract_claims(text):
     prompt = f"""
     Analyze the following text and extract the main factual claims (up to 5). Provide each claim in a numbered list.
@@ -100,17 +111,18 @@ def extract_claims(text):
     3. [Third claim]
     """
     response = client.chat.completions.create(
-        model="llama-3.1-70b-versatile",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a helpful assistant that extracts factual claims from text."
-            },
-            {"role": "user", "content": prompt}
-        ],
+        model="llama-3.3-70b-versatile",
+        messages=[{
+            "role":
+            "system",
+            "content":
+            "You are a helpful assistant that extracts factual claims from text."
+        }, {
+            "role": "user",
+            "content": prompt
+        }],
         max_tokens=500,
-        temperature=0.2
-    )
+        temperature=0.2)
     claims_text = response.choices[0].message.content
     # Extract claims from the response
     claims = []
@@ -137,7 +149,9 @@ def search_sources_for_claim(claim):
         # Get the Bing Search API key from environment variable
         subscription_key = os.getenv('BING_SEARCH_V7_SUBSCRIPTION_KEY')
         if not subscription_key:
-            raise ValueError("Bing Search API key not found. Set the 'BING_SEARCH_V7_SUBSCRIPTION_KEY' environment variable.")
+            raise ValueError(
+                "Bing Search API key not found. Set the 'BING_SEARCH_V7_SUBSCRIPTION_KEY' environment variable."
+            )
 
         search_url = "https://api.bing.microsoft.com/v7.0/search"
 
@@ -149,8 +163,10 @@ def search_sources_for_claim(claim):
         search_results = response.json()
 
         sources = []
-        if "webPages" in search_results and "value" in search_results["webPages"]:
-            for result in search_results["webPages"]["value"][:5]:  # Limit to top 5 results
+        if "webPages" in search_results and "value" in search_results[
+                "webPages"]:
+            for result in search_results["webPages"][
+                    "value"][:5]:  # Limit to top 5 results
                 name = clean_text(result.get('name', ''))
                 snippet = clean_text(result.get('snippet', ''))
                 source = {
@@ -166,7 +182,6 @@ def search_sources_for_claim(claim):
     except Exception as e:
         print(f"Error searching for claim '{claim}': {e}")
         return []
-
 
 
 def compute_craap_score(claim, source):
@@ -197,17 +212,18 @@ def compute_craap_score(claim, source):
     """
 
     response = client.chat.completions.create(
-        model="llama3-groq-70b-8192-tool-use-preview",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a helpful assistant that evaluates sources based on the CRAAP test."
-            },
-            {"role": "user", "content": prompt}
-        ],
+        model="llama-3.3-70b-versatile",
+        messages=[{
+            "role":
+            "system",
+            "content":
+            "You are a helpful assistant that evaluates sources based on the CRAAP test."
+        }, {
+            "role": "user",
+            "content": prompt
+        }],
         max_tokens=500,
-        temperature=0.2
-    )
+        temperature=0.2)
 
     content = response.choices[0].message.content
 
@@ -216,31 +232,52 @@ def compute_craap_score(claim, source):
     for line in content.split('\n'):
         line = line.strip()
         if line.startswith('Currency:'):
-            score_explanation = line.split(':',1)[1].strip()
-            score, explanation = score_explanation.split('-',1)
-            craap_scores['Currency'] = {'score': float(score.strip()), 'explanation': explanation.strip()}
+            score_explanation = line.split(':', 1)[1].strip()
+            score, explanation = score_explanation.split('-', 1)
+            craap_scores['Currency'] = {
+                'score': float(score.strip()),
+                'explanation': explanation.strip()
+            }
         elif line.startswith('Relevance:'):
-            score_explanation = line.split(':',1)[1].strip()
-            score, explanation = score_explanation.split('-',1)
-            craap_scores['Relevance'] = {'score': float(score.strip()), 'explanation': explanation.strip()}
+            score_explanation = line.split(':', 1)[1].strip()
+            score, explanation = score_explanation.split('-', 1)
+            craap_scores['Relevance'] = {
+                'score': float(score.strip()),
+                'explanation': explanation.strip()
+            }
         elif line.startswith('Authority:'):
-            score_explanation = line.split(':',1)[1].strip()
-            score, explanation = score_explanation.split('-',1)
-            craap_scores['Authority'] = {'score': float(score.strip()), 'explanation': explanation.strip()}
+            score_explanation = line.split(':', 1)[1].strip()
+            score, explanation = score_explanation.split('-', 1)
+            craap_scores['Authority'] = {
+                'score': float(score.strip()),
+                'explanation': explanation.strip()
+            }
         elif line.startswith('Accuracy:'):
-            score_explanation = line.split(':',1)[1].strip()
-            score, explanation = score_explanation.split('-',1)
-            craap_scores['Accuracy'] = {'score': float(score.strip()), 'explanation': explanation.strip()}
+            score_explanation = line.split(':', 1)[1].strip()
+            score, explanation = score_explanation.split('-', 1)
+            craap_scores['Accuracy'] = {
+                'score': float(score.strip()),
+                'explanation': explanation.strip()
+            }
         elif line.startswith('Purpose:'):
-            score_explanation = line.split(':',1)[1].strip()
-            score, explanation = score_explanation.split('-',1)
-            craap_scores['Purpose'] = {'score': float(score.strip()), 'explanation': explanation.strip()}
+            score_explanation = line.split(':', 1)[1].strip()
+            score, explanation = score_explanation.split('-', 1)
+            craap_scores['Purpose'] = {
+                'score': float(score.strip()),
+                'explanation': explanation.strip()
+            }
     return craap_scores
 
 
 def compute_overall_craap_score(craap_scores_list):
     # craap_scores_list is a list of dictionaries of CRAAP scores for each source
-    aggregated_scores = {'Currency': 0, 'Relevance': 0, 'Authority': 0, 'Accuracy': 0, 'Purpose': 0}
+    aggregated_scores = {
+        'Currency': 0,
+        'Relevance': 0,
+        'Authority': 0,
+        'Accuracy': 0,
+        'Purpose': 0
+    }
     num_sources = len(craap_scores_list)
     for scores in craap_scores_list:
         for criterion in aggregated_scores.keys():
@@ -249,7 +286,6 @@ def compute_overall_craap_score(craap_scores_list):
     for criterion in aggregated_scores.keys():
         aggregated_scores[criterion] /= num_sources
     return aggregated_scores
-
 
 
 def extract_and_verify_claims(text, original_query):
@@ -286,12 +322,12 @@ def extract_and_verify_claims(text, original_query):
                     name=source_data['name'],
                     url=source_data['url'],
                     snippet=source_data['snippet'],
-                    date_last_crawled=source_data['date_last_crawled']
-                )
+                    date_last_crawled=source_data['date_last_crawled'])
                 # Intentionality Categorization
                 intent_categorization = categorize_source_intent(source_data)
                 source.intent_category = intent_categorization['category']
-                source.intent_explanation = intent_categorization['explanation']
+                source.intent_explanation = intent_categorization[
+                    'explanation']
                 db.session.add(source)
                 db.session.commit()
 
@@ -301,15 +337,15 @@ def extract_and_verify_claims(text, original_query):
                 craap_scores_list.append(craap_scores)
 
                 # Prepare source-specific CRAAP scores for display
-                source_craap_scores_list = [
-                    {
-                        'criterion': criterion,
-                        'score': details['score'],
-                        'explanation': details['explanation']
-                    }
-                    for criterion, details in craap_scores.items()
-                    if criterion != 'source'
-                ]
+                source_craap_scores_list = [{
+                    'criterion':
+                    criterion,
+                    'score':
+                    details['score'],
+                    'explanation':
+                    details['explanation']
+                } for criterion, details in craap_scores.items()
+                                            if criterion != 'source']
 
                 # Add source data to sources_data list
                 sources_data.append({
@@ -322,16 +358,15 @@ def extract_and_verify_claims(text, original_query):
                 })
 
             # Compute overall CRAAP scores
-            overall_craap_scores = compute_overall_craap_score(craap_scores_list)
+            overall_craap_scores = compute_overall_craap_score(
+                craap_scores_list)
             # Assess the claim's veracity
             veracity_assessment = assess_claim_veracity(claim_text, sources)
 
         # Calculate final truth score
         if overall_craap_scores and veracity_assessment:
             final_truth_score = calculate_final_truth_score(
-                overall_craap_scores,
-                veracity_assessment['probability']
-            )
+                overall_craap_scores, veracity_assessment['probability'])
             # Update claim with veracity assessment and final truth score
             claim.veracity_probability = veracity_assessment['probability']
             claim.veracity_justification = veracity_assessment['justification']
@@ -349,7 +384,6 @@ def extract_and_verify_claims(text, original_query):
             'final_truth_score': final_truth_score
         })
     return results
-
 
 
 def assess_claim_veracity(claim, sources):
@@ -375,17 +409,18 @@ Justification: [Your brief justification]
 """
 
         response = client.chat.completions.create(
-            model="llama-3.1-70b-versatile",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that assesses the truthfulness of claims based on evidence."
-                },
-                {"role": "user", "content": prompt}
-            ],
+            model="llama-3.3-70b-versatile",
+            messages=[{
+                "role":
+                "system",
+                "content":
+                "You are a helpful assistant that assesses the truthfulness of claims based on evidence."
+            }, {
+                "role": "user",
+                "content": prompt
+            }],
             max_tokens=300,
-            temperature=0.2
-        )
+            temperature=0.2)
 
         # Parse the response
         content = response.choices[0].message.content.strip()
@@ -398,10 +433,7 @@ Justification: [Your brief justification]
             elif line.startswith('Justification:'):
                 justification = line.split('Justification:')[1].strip()
 
-        return {
-            'probability': probability,
-            'justification': justification
-        }
+        return {'probability': probability, 'justification': justification}
     except Exception as e:
         print(f"Error assessing claim veracity: {e}")
         return None
@@ -435,17 +467,18 @@ Explanation: [Briefly explain why this category was chosen]
 """
 
         response = client.chat.completions.create(
-            model="llama-3.1-70b-versatile",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that categorizes sources based on their intent."
-                },
-                {"role": "user", "content": prompt}
-            ],
+            model="llama-3.3-70b-versatile",
+            messages=[{
+                "role":
+                "system",
+                "content":
+                "You are a helpful assistant that categorizes sources based on their intent."
+            }, {
+                "role": "user",
+                "content": prompt
+            }],
             max_tokens=150,
-            temperature=0.2
-        )
+            temperature=0.2)
 
         # Parse the response
         content = response.choices[0].message.content.strip()
@@ -454,7 +487,8 @@ Explanation: [Briefly explain why this category was chosen]
         lines = content.split('\n')
         for line in lines:
             if line.startswith('Category Number:'):
-                category_number = int(line.split('Category Number:')[1].strip())
+                category_number = int(
+                    line.split('Category Number:')[1].strip())
             elif line.startswith('Explanation:'):
                 explanation = line.split('Explanation:')[1].strip()
 
@@ -475,18 +509,13 @@ Explanation: [Briefly explain why this category was chosen]
         }
         category_name = categories.get(category_number, 'Unknown')
 
-        return {
-            'category': category_name,
-            'explanation': explanation
-        }
+        return {'category': category_name, 'explanation': explanation}
     except Exception as e:
         print(f"Error categorizing source intent: {e}")
         return {
             'category': 'Unknown',
             'explanation': 'Could not determine the category.'
         }
-
-
 
 
 def interpret_probability(probability):
@@ -511,8 +540,6 @@ def interpret_final_score(final_score):
         return 'Uncertain'
 
 
-
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -524,10 +551,12 @@ def index():
         else:
             text = content
 
-        fact_check_results = extract_and_verify_claims(text, original_query=content)
+        fact_check_results = extract_and_verify_claims(text,
+                                                       original_query=content)
 
         return render_template('results.html', results=fact_check_results)
     return render_template('index.html')
+
 
 @app.route('/news', methods=['GET'])
 def news():
@@ -535,15 +564,20 @@ def news():
     page = request.args.get('page', 1, type=int)
     per_page = 10  # Number of claims per page
     if search_query:
-        claims = Claim.query.filter(Claim.text.contains(search_query) | 
-                                    Claim.original_query.contains(search_query))
+        claims = Claim.query.filter(
+            Claim.text.contains(search_query)
+            | Claim.original_query.contains(search_query))
     else:
         claims = Claim.query
-    paginated_claims = claims.order_by(Claim.date_checked.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    paginated_claims = claims.order_by(Claim.date_checked.desc()).paginate(
+        page=page, per_page=per_page, error_out=False)
 
     claims_data = []
     for claim in paginated_claims.items:
-        overall_scores = {score.criterion: score.score for score in claim.overall_scores}
+        overall_scores = {
+            score.criterion: score.score
+            for score in claim.overall_scores
+        }
         sources = [{
             'name': source.name,
             'url': source.url,
@@ -560,12 +594,19 @@ def news():
             'sources': sources,
             'original_query': claim.original_query
         })
-    return render_template('news.html', claims=claims_data, paginated_claims=paginated_claims, search_query=search_query)
+    return render_template('news.html',
+                           claims=claims_data,
+                           paginated_claims=paginated_claims,
+                           search_query=search_query)
+
 
 @app.route('/claim/<int:claim_id>')
 def claim_detail(claim_id):
     claim = Claim.query.get_or_404(claim_id)
-    overall_scores = {score.criterion: score.score for score in claim.overall_scores}
+    overall_scores = {
+        score.criterion: score.score
+        for score in claim.overall_scores
+    }
     sources_data = []
     for source in claim.sources:
         craap_scores = {}
@@ -589,16 +630,12 @@ def claim_detail(claim_id):
         'justification': claim.veracity_justification
     }
     final_truth_score = claim.final_truth_score
-    return render_template(
-        'claim_detail.html',
-        claim=claim,
-        overall_scores=overall_scores,
-        sources=sources_data,
-        veracity_assessment=veracity_assessment,
-        final_truth_score=final_truth_score
-    )
-
-
+    return render_template('claim_detail.html',
+                           claim=claim,
+                           overall_scores=overall_scores,
+                           sources=sources_data,
+                           veracity_assessment=veracity_assessment,
+                           final_truth_score=final_truth_score)
 
 
 @app.route('/about')
@@ -606,8 +643,10 @@ def about():
     current_year = datetime.now().year
     return render_template('about.html', current_year=current_year)
 
+
 @app.context_processor
 def utility_functions():
+
     def interpret_probability(probability):
         if probability is None:
             return 'Unknown'
@@ -628,11 +667,8 @@ def utility_functions():
         else:
             return 'Uncertain'
 
-    return dict(
-        interpret_probability=interpret_probability,
-        interpret_final_score=interpret_final_score
-    )
-
+    return dict(interpret_probability=interpret_probability,
+                interpret_final_score=interpret_final_score)
 
 
 if __name__ == '__main__':
